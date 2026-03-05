@@ -11,30 +11,37 @@ import Settings from "./pages/student/Settings";
 import VideoMeeting from "./pages/course/VideoMeeting";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CreateCourse from "./pages/tutor/CreateCourse";
-import CourseCatalog from "./pages/student/CourseCatalog";
 import LessonViewer from "./pages/student/LessonViewer";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+
       <Route path="/dashboard/student" element={<StudentDashboard />} />
-      <Route path="/catalog" element={
-        <ProtectedRoute allowedRole="student">
-          <CourseCatalog />
-        </ProtectedRoute>
-      } />
-      <Route path="/courses/:id/learn" element={
-        <ProtectedRoute allowedRole="student">
-          <LessonViewer />
-        </ProtectedRoute>
-      } />
+
+      {/* Removed catalog route */}
+
+      <Route
+        path="/courses/:id/learn"
+        element={
+          <ProtectedRoute allowedRole="student">
+            <LessonViewer />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/dashboard/tutor" element={<TutorDashboard />} />
-      <Route path="/tutor/courses/new" element={
-        <ProtectedRoute allowedRole="tutor">
-          <CreateCourse />
-        </ProtectedRoute>
-      } />
+
+      <Route
+        path="/tutor/courses/new"
+        element={
+          <ProtectedRoute allowedRole="tutor">
+            <CreateCourse />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/calendar" element={<StudentCalendar />} />
       <Route path="/messages" element={<MessagesLayout />} />
       <Route path="/modules" element={<Modules />} />
@@ -47,5 +54,3 @@ function App() {
 }
 
 export default App;
-
-
