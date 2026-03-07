@@ -2,24 +2,21 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({ children, allowedRole }) {
-    const { user, role } = useAuth();
+  const { user, role, loading } = useAuth();
 
-    // TEMPORARY BYPASS: allow if they haven't set up Supabase yet for demoing UI
-    const isBypassMode = localStorage.getItem("temp_role") !== null;
-    const tempRole = localStorage.getItem("temp_role");
+  if (loading) return null;
 
-    // If we are strictly checking Supabase Auth (and bypass is off)
-    if (!isBypassMode && !user) {
-        return <Navigate to="/" replace />;
-    }
+  if (!user) return <Navigate to="/" replace />;
 
-    const currentRole = isBypassMode ? tempRole : role;
+  if (role === null) return <Navigate to="/" replace />;
 
-    if (allowedRole && currentRole !== allowedRole) {
-        // Redirect wrong roles to their correct dashboards
-        if (currentRole === "tutor") return <Navigate to="/dashboard/tutor" replace />;
-        return <Navigate to="/dashboard/student" replace />;
-    }
+  const allowedRoles = Array.isArray(allowedRole)
+    ? allowedRole
+    : [allowedRole];
 
-    return children;
+  if (!allowedRoles.includes(role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }

@@ -6,7 +6,6 @@ import CourseCard from "../../components/ui/CourseCard";
 export default function StudentDashboard() {
   const { user } = useAuth();
 
-  // Mock data for enrolled courses (VLE Style)
   const enrolledCourses = [
     {
       id: "1",
@@ -59,8 +58,9 @@ export default function StudentDashboard() {
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
+          {/* FIXED ROUTE */}
           <Link
-            to="/dashboard/student"
+            to="/student"
             className="flex items-center px-3 py-2.5 bg-indigo-50 text-indigo-700 rounded-lg font-medium"
           >
             <BookMarked className="h-5 w-5 mr-3" />
@@ -130,8 +130,10 @@ export default function StudentDashboard() {
               <Award className="h-4 w-4 mr-1.5" />
               1,240 XP
             </div>
+
+            {/* FIXED ROUTE */}
             <Link
-              to="/settings"
+              to="/student/settings"
               className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold hover:bg-indigo-200 transition-colors cursor-pointer"
             >
               S
@@ -161,6 +163,7 @@ export default function StudentDashboard() {
                   You're almost halfway through this course! The next lesson is
                   "React Hooks in Depth".
                 </p>
+
                 <Link
                   to={`/courses/${enrolledCourses[0].id}/learn`}
                   className="inline-flex w-max items-center justify-center px-5 py-2.5 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition-colors"
@@ -168,7 +171,9 @@ export default function StudentDashboard() {
                   Resume Course
                 </Link>
               </div>
-              <div className="hidden sm:block absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-transparent to-indigo-600 z-0 content-transparent"></div>
+
+              <div className="hidden sm:block absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-transparent to-indigo-600 z-0"></div>
+
               <div className="hidden sm:block sm:w-1/3 absolute right-0 top-0 h-full opacity-40 mix-blend-overlay">
                 <img
                   src={enrolledCourses[0].thumbnail_url}
