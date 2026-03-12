@@ -8,11 +8,15 @@ import Calendar from "./pages/student/Calendar.jsx";
 import Grades from "./pages/student/Grades.jsx";
 import LessonViewer from "./pages/student/LessonViewer.jsx";
 import StudentSettings from "./pages/student/Settings.jsx";
+import SubmitCoursework from "./pages/student/SubmitCoursework.jsx";
+import MySubmissions from "./pages/student/MySubmissions.jsx";
 
 // Tutor pages
 import TutorDashboard from "./pages/tutor/TutorDashboard.jsx";
 import ManageGrades from "./pages/tutor/ManageGrades.jsx";
 import CreateCourse from "./pages/tutor/CreateCourse.jsx";
+import ReviewSubmissions from "./pages/tutor/ReviewSubmissions.jsx";
+import GradeSubmission from "./pages/tutor/GradeSubmission.jsx";
 
 // Chat pages
 import MessagesLayout from "./pages/chat/MessagesLayout.jsx";
@@ -76,6 +80,24 @@ export default function App() {
         }
       />
 
+      <Route
+        path="/submit-coursework"
+        element={
+          <ProtectedRoute allowedRole="student">
+            <SubmitCoursework />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/my-submissions"
+        element={
+          <ProtectedRoute allowedRole="student">
+            <MySubmissions />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Tutor */}
       <Route
         path="/tutor"
@@ -100,6 +122,24 @@ export default function App() {
         element={
           <ProtectedRoute allowedRole="tutor">
             <CreateCourse />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/review-submissions"
+        element={
+          <ProtectedRoute allowedRole="tutor">
+            <ReviewSubmissions />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/grade/:id"
+        element={
+          <ProtectedRoute allowedRole="tutor">
+            <GradeSubmission />
           </ProtectedRoute>
         }
       />

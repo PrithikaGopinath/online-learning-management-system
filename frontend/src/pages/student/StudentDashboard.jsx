@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { BookOpen, Video, BookMarked, Award } from "lucide-react";
+import { BookOpen, Video, BookMarked, Award, FileText } from "lucide-react";
 import CourseCard from "../../components/ui/CourseCard";
 
 export default function StudentDashboard() {
@@ -58,7 +58,7 @@ export default function StudentDashboard() {
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
-          {/* FIXED ROUTE */}
+          {/* Home */}
           <Link
             to="/student"
             className="flex items-center px-3 py-2.5 bg-indigo-50 text-indigo-700 rounded-lg font-medium"
@@ -67,6 +67,7 @@ export default function StudentDashboard() {
             Home
           </Link>
 
+          {/* Timetable */}
           <Link
             to="/calendar"
             className="flex items-center px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
@@ -89,6 +90,7 @@ export default function StudentDashboard() {
             Timetable
           </Link>
 
+          {/* Messages */}
           <Link
             to="/messages"
             className="flex items-center px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
@@ -108,12 +110,31 @@ export default function StudentDashboard() {
             Messages
           </Link>
 
+          {/* Live Meetings */}
           <Link
             to="/meeting"
             className="flex items-center px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
           >
             <Video className="h-5 w-5 mr-3 text-gray-400" />
             Live Meetings
+          </Link>
+
+          {/* NEW: Submit Coursework */}
+          <Link
+            to="/submit-coursework"
+            className="flex items-center px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+          >
+            <FileText className="h-5 w-5 mr-3 text-gray-400" />
+            Submit Coursework
+          </Link>
+
+          {/* NEW: My Submissions */}
+          <Link
+            to="/my-submissions"
+            className="flex items-center px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+          >
+            <Award className="h-5 w-5 mr-3 text-gray-400" />
+            My Submissions
           </Link>
         </nav>
       </aside>
@@ -126,12 +147,6 @@ export default function StudentDashboard() {
             Student Dashboard
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
-              <Award className="h-4 w-4 mr-1.5" />
-              1,240 XP
-            </div>
-
-            {/* FIXED ROUTE */}
             <Link
               to="/student/settings"
               className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold hover:bg-indigo-200 transition-colors cursor-pointer"
