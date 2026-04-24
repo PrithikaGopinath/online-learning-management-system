@@ -124,6 +124,11 @@ export default function Modules() {
       .order("created_at", { ascending: false });
     if (profileData && profileData.role === "student") {
       query = query.eq("grade", profileData.grade);
+    } else if (profileData && profileData.role === "tutor") {
+      const assignedGrades = profileData.assigned_grades || [];
+      if (assignedGrades.length > 0) {
+        query = query.in("grade", assignedGrades);
+      }
     }
     const { data } = await query;
     setModules(data || []);
@@ -150,6 +155,20 @@ export default function Modules() {
     setStage(newStage);
     setSubject(CURRICULUM[newStage].subjects[0]);
     setGrade(CURRICULUM[newStage].grades[0]);
+  };
+
+  const getAvailableGrades = () => {
+    if (
+      profile &&
+      profile.role === "tutor" &&
+      profile.assigned_grades &&
+      profile.assigned_grades.length > 0
+    ) {
+      return CURRICULUM[stage].grades.filter((g) =>
+        profile.assigned_grades.includes(g),
+      );
+    }
+    return CURRICULUM[stage].grades;
   };
 
   const handleUpload = async (e) => {
@@ -214,7 +233,14 @@ export default function Modules() {
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}>📚 Modules</h1>
-          <p style={styles.subtitle}>UK Curriculum — Grades 1 to 12</p>
+          <p style={styles.subtitle}>
+            {profile &&
+            profile.role === "tutor" &&
+            profile.assigned_grades &&
+            profile.assigned_grades.length > 0
+              ? `Your Grades: ${profile.assigned_grades.sort((a, b) => Number(a) - Number(b)).join(", ")}`
+              : "UK Curriculum — Grades 1 to 12"}
+          </p>
         </div>
         {profile && profile.role === "tutor" && (
           <button style={styles.addBtn} onClick={() => setShowForm(!showForm)}>
@@ -276,15 +302,13 @@ export default function Modules() {
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
             >
-              {CURRICULUM[stage].grades.map((g) => (
+              {getAvailableGrades().map((g) => (
                 <option key={g} value={g}>
                   Grade {g}
                 </option>
               ))}
             </select>
-            <label style={styles.label}>
-              Upload File (PDF, Word, PPT, Video)
-            </label>
+            <label style={styles.label}>Upload File</label>
             <input
               style={styles.input}
               type="file"
@@ -359,7 +383,7 @@ export default function Modules() {
 
       {Object.keys(grouped).length === 0 ? (
         <div style={styles.empty}>
-          <p style={{ fontSize: "48px", marginBottom: "12px" }}>📭</p>
+          <div style={{ fontSize: "48px", marginBottom: "12px" }}>📭</div>
           <p style={{ color: "#666", fontSize: "18px" }}>No modules yet</p>
           {profile && profile.role === "tutor" && (
             <p style={{ color: "#aaa", fontSize: "14px", marginTop: "8px" }}>
@@ -517,7 +541,7 @@ const styles = {
   title: { fontSize: "28px", color: "#333", marginBottom: "4px" },
   subtitle: { fontSize: "14px", color: "#888" },
   addBtn: {
-    background: "#667eea",
+    background: "#5c6bc0",
     color: "white",
     border: "none",
     padding: "10px 20px",
@@ -567,7 +591,7 @@ const styles = {
     resize: "vertical",
   },
   submitBtn: {
-    background: "#667eea",
+    background: "#5c6bc0",
     color: "white",
     border: "none",
     padding: "12px 28px",

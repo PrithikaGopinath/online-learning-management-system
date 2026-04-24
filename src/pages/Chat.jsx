@@ -10,6 +10,8 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const profileRef = useRef(null);
+  const selectedUserRef = useRef(null);
 
   useEffect(() => {
     const getData = async () => {
@@ -22,6 +24,7 @@ export default function Chat() {
         .eq("id", user.id)
         .single();
       setProfile(profileData);
+      profileRef.current = profileData;
       if (profileData && profileData.role === "tutor") {
         const { data } = await supabase
           .from("profiles")
@@ -43,7 +46,12 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
+
+  useEffect(() => {
     if (!selectedUser || !profile) return;
+
     const fetchMessages = async () => {
       const { data } = await supabase
         .from("messages")
@@ -54,26 +62,44 @@ export default function Chat() {
         .order("created_at", { ascending: true });
       setMessages(data || []);
     };
+
     fetchMessages();
+
     const channel = supabase
-      .channel("chat")
+      .channel(`messages_${profile.id}_${selectedUser.id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+        },
         (payload) => {
           const msg = payload.new;
+          const currentProfile = profileRef.current;
+          const currentSelectedUser = selectedUserRef.current;
+
+          if (!currentProfile || !currentSelectedUser) return;
+
           if (
-            (msg.sender_id === profile.id &&
-              msg.receiver_id === selectedUser.id) ||
-            (msg.sender_id === selectedUser.id &&
-              msg.receiver_id === profile.id)
+            (msg.sender_id === currentProfile.id &&
+              msg.receiver_id === currentSelectedUser.id) ||
+            (msg.sender_id === currentSelectedUser.id &&
+              msg.receiver_id === currentProfile.id)
           ) {
-            setMessages((prev) => [...prev, msg]);
+            setMessages((prev) => {
+              const exists = prev.some((m) => m.id === msg.id);
+              if (exists) return prev;
+              return [...prev, msg];
+            });
           }
         },
       )
       .subscribe();
-    return () => supabase.removeChannel(channel);
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [selectedUser, profile]);
 
   useEffect(() => {
@@ -83,18 +109,53 @@ export default function Chat() {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedUser) return;
+    if (!newMessage.trim() || !selectedUser || !profile) return;
     setSending(true);
-    await supabase.from("messages").insert({
-      sender_id: profile.id,
-      receiver_id: selectedUser.id,
-      message: newMessage.trim(),
-    });
+
+    const messageText = newMessage.trim();
     setNewMessage("");
+
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({
+        sender_id: profile.id,
+        receiver_id: selectedUser.id,
+        message: messageText,
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.id === data.id);
+        if (exists) return prev;
+        return [...prev, data];
+      });
+    }
+
     setSending(false);
   };
 
-  if (loading) return <div style={styles.loading}>Loading chat...</div>;
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend(e);
+    }
+  };
+
+  if (loading)
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "80vh",
+        }}
+      >
+        <p style={{ color: "#5c6bc0", fontSize: "16px" }}>Loading chat...</p>
+      </div>
+    );
 
   return (
     <div style={styles.container}>
@@ -122,7 +183,7 @@ export default function Chat() {
                   ...styles.userItem,
                   background:
                     selectedUser && selectedUser.id === u.id
-                      ? "#667eea"
+                      ? "#5c6bc0"
                       : "transparent",
                   color:
                     selectedUser && selectedUser.id === u.id ? "white" : "#333",
@@ -134,10 +195,10 @@ export default function Chat() {
                     background:
                       selectedUser && selectedUser.id === u.id
                         ? "white"
-                        : "#667eea",
+                        : "#5c6bc0",
                     color:
                       selectedUser && selectedUser.id === u.id
-                        ? "#667eea"
+                        ? "#5c6bc0"
                         : "white",
                   }}
                 >
@@ -208,6 +269,7 @@ export default function Chat() {
                 </p>
               </div>
             </div>
+
             <div style={styles.messages}>
               {messages.length === 0 ? (
                 <div
@@ -239,7 +301,7 @@ export default function Chat() {
                             width: "28px",
                             height: "28px",
                             borderRadius: "50%",
-                            background: "#667eea",
+                            background: "#5c6bc0",
                             color: "white",
                             display: "flex",
                             alignItems: "center",
@@ -258,7 +320,7 @@ export default function Chat() {
                           maxWidth: "65%",
                           padding: "10px 14px",
                           borderRadius: "16px",
-                          background: isMe ? "#667eea" : "white",
+                          background: isMe ? "#5c6bc0" : "white",
                           color: isMe ? "white" : "#333",
                           boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
                           borderBottomRightRadius: isMe ? "4px" : "16px",
@@ -293,16 +355,19 @@ export default function Chat() {
               )}
               <div ref={messagesEndRef} />
             </div>
+
             <form style={styles.inputArea} onSubmit={handleSend}>
               <input
                 style={styles.messageInput}
                 type="text"
-                placeholder="Type a message..."
+                placeholder="Type a message and press Enter..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={sending}
               />
               <button
-                style={styles.sendBtn}
+                style={{ ...styles.sendBtn, opacity: sending ? 0.6 : 1 }}
                 type="submit"
                 disabled={sending || !newMessage.trim()}
               >
@@ -321,8 +386,8 @@ const styles = {
     display: "flex",
     height: "calc(100vh - 64px)",
     overflow: "hidden",
+    background: "#f0f2f5",
   },
-  loading: { textAlign: "center", padding: "40px", fontSize: "18px" },
   sidebar: {
     width: "280px",
     background: "white",
@@ -382,7 +447,7 @@ const styles = {
     width: "44px",
     height: "44px",
     borderRadius: "50%",
-    background: "#667eea",
+    background: "#5c6bc0",
     color: "white",
     display: "flex",
     alignItems: "center",
@@ -394,7 +459,9 @@ const styles = {
     flex: 1,
     overflowY: "auto",
     padding: "20px",
-    background: "#f5f6fa",
+    background: "#f8f9ff",
+    display: "flex",
+    flexDirection: "column",
   },
   inputArea: {
     display: "flex",
@@ -408,7 +475,7 @@ const styles = {
     flex: 1,
     padding: "12px 16px",
     borderRadius: "24px",
-    border: "1px solid #ddd",
+    border: "1.5px solid #e0e0e0",
     fontSize: "15px",
     outline: "none",
   },
@@ -416,10 +483,13 @@ const styles = {
     width: "48px",
     height: "48px",
     borderRadius: "50%",
-    background: "#667eea",
+    background: "#5c6bc0",
     color: "white",
     border: "none",
     cursor: "pointer",
     fontSize: "18px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 };

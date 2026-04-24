@@ -18,13 +18,24 @@ export default function Dashboard() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
+      if (!profileData) {
+        setLoading(false);
+        return;
+      }
+
       setProfile(profileData);
-      if (profileData && profileData.role === "student") {
+
+      if (profileData.role === "student") {
         const { data: m } = await supabase
           .from("modules")
           .select("*")
@@ -32,6 +43,7 @@ export default function Dashboard() {
           .order("created_at", { ascending: false })
           .limit(4);
         setModules(m || []);
+
         const { data: a } = await supabase
           .from("assignments")
           .select("*")
@@ -39,11 +51,13 @@ export default function Dashboard() {
           .order("due_date", { ascending: true })
           .limit(5);
         setAssignments(a || []);
+
         const { data: s } = await supabase
           .from("submissions")
           .select("*")
           .eq("student_id", user.id);
         setSubmissions(s || []);
+
         const { data: q } = await supabase
           .from("quizzes")
           .select("*")
@@ -51,40 +65,74 @@ export default function Dashboard() {
           .order("created_at", { ascending: false })
           .limit(4);
         setQuizzes(q || []);
+
         const { data: at } = await supabase
           .from("quiz_attempts")
           .select("*")
           .eq("student_id", user.id);
         setAttempts(at || []);
       } else {
-        const { data: m } = await supabase
+        const assignedGrades = profileData.assigned_grades || [];
+
+        let modQuery = supabase
           .from("modules")
           .select("*")
           .eq("created_by", user.id)
           .order("created_at", { ascending: false })
           .limit(4);
+        const { data: m } = await modQuery;
         setModules(m || []);
-        const { data: a } = await supabase
+
+        let assignQuery = supabase
           .from("assignments")
           .select("*")
-          .eq("created_by", user.id)
           .order("created_at", { ascending: false })
           .limit(5);
+        if (assignedGrades.length > 0) {
+          assignQuery = supabase
+            .from("assignments")
+            .select("*")
+            .in("grade", assignedGrades)
+            .order("created_at", { ascending: false })
+            .limit(5);
+        } else {
+          assignQuery = supabase
+            .from("assignments")
+            .select("*")
+            .eq("created_by", user.id)
+            .order("created_at", { ascending: false })
+            .limit(5);
+        }
+        const { data: a } = await assignQuery;
         setAssignments(a || []);
-        const { data: s } = await supabase
-          .from("submissions")
-          .select("*, profiles(full_name)")
-          .order("submitted_at", { ascending: false })
-          .limit(5);
-        setSubmissions(s || []);
-        const { data: q } = await supabase
+
+        const { data: assignmentIds } = await supabase
+          .from("assignments")
+          .select("id")
+          .eq("created_by", user.id);
+        const ids = (assignmentIds || []).map((a) => a.id);
+        let subsData = [];
+        if (ids.length > 0) {
+          const { data: s } = await supabase
+            .from("submissions")
+            .select("*, profiles(full_name)")
+            .in("assignment_id", ids)
+            .order("submitted_at", { ascending: false })
+            .limit(5);
+          subsData = s || [];
+        }
+        setSubmissions(subsData);
+
+        let quizQuery = supabase
           .from("quizzes")
           .select("*")
           .eq("created_by", user.id)
           .order("created_at", { ascending: false })
           .limit(4);
+        const { data: q } = await quizQuery;
         setQuizzes(q || []);
       }
+
       const { data: ann } = await supabase
         .from("announcements")
         .select("*, profiles(full_name)")

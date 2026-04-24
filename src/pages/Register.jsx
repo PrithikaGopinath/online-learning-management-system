@@ -8,14 +8,28 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [grade, setGrade] = useState("1");
+  const [assignedGrades, setAssignedGrades] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const isTutor = role === "tutor";
 
+  const handleGradeToggle = (g) => {
+    const gs = String(g);
+    if (assignedGrades.includes(gs)) {
+      setAssignedGrades(assignedGrades.filter((ag) => ag !== gs));
+    } else {
+      setAssignedGrades([...assignedGrades, gs]);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (isTutor && assignedGrades.length === 0) {
+      setError("Please select at least one grade you teach!");
+      return;
+    }
     setLoading(true);
     setError("");
     const { data, error } = await supabase.auth.signUp({ email, password });
@@ -27,15 +41,23 @@ export default function Register() {
     await supabase.from("profiles").insert({
       id: data.user.id,
       full_name: fullName,
-      role,
+      role: role,
       grade: isTutor ? null : grade,
+      assigned_grades: isTutor ? assignedGrades : null,
     });
     navigate("/dashboard");
     setLoading(false);
   };
 
   return (
-    <div style={styles.container}>
+    <div
+      style={{
+        ...styles.container,
+        background: isTutor
+          ? "linear-gradient(135deg, #1a237e 0%, #3949ab 50%, #5c6bc0 100%)"
+          : "linear-gradient(135deg, #1a237e 0%, #3949ab 50%, #5c6bc0 100%)",
+      }}
+    >
       <div style={styles.left}>
         <div style={styles.logoRow}>
           <div style={styles.logoBox}>📖</div>
@@ -53,7 +75,7 @@ export default function Register() {
         </h2>
         <p style={styles.desc}>
           Create your {isTutor ? "tutor" : "student"} account to get started
-          with the UK's leading virtual learning environment.
+          with LearnHub VLE — your online learning portal.
         </p>
         <button
           style={styles.backBtn}
@@ -67,12 +89,7 @@ export default function Register() {
         <div style={styles.registerBox}>
           <div style={styles.roleTag}>
             <span style={{ fontSize: "24px" }}>{isTutor ? "👩‍🏫" : "👨‍🎓"}</span>
-            <span
-              style={{
-                ...styles.roleLabel,
-                color: isTutor ? "#5c6bc0" : "#3f51b5",
-              }}
-            >
+            <span style={{ ...styles.roleLabel, color: "#5c6bc0" }}>
               {isTutor ? "Tutor Registration" : "Student Registration"}
             </span>
           </div>
@@ -92,6 +109,7 @@ export default function Register() {
               onChange={(e) => setFullName(e.target.value)}
               required
             />
+
             <label style={styles.label}>Email address</label>
             <input
               style={styles.input}
@@ -101,6 +119,7 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+
             <label style={styles.label}>Password</label>
             <input
               style={styles.input}
@@ -110,7 +129,8 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            {!isTutor && (
+
+            {!isTutor ? (
               <>
                 <label style={styles.label}>Your Grade</label>
                 <select
@@ -125,12 +145,86 @@ export default function Register() {
                   ))}
                 </select>
               </>
+            ) : (
+              <>
+                <label style={styles.label}>Grades You Teach</label>
+                <p style={styles.gradeHint}>
+                  Select all grades you are responsible for
+                </p>
+                <div style={styles.gradesGrid}>
+                  {[
+                    {
+                      label: "🌱 Primary",
+                      grades: [1, 2, 3, 4, 5],
+                      color: "#43a047",
+                      bg: "#e8f5e9",
+                    },
+                    {
+                      label: "📘 Lower Secondary",
+                      grades: [6, 7, 8],
+                      color: "#1e88e5",
+                      bg: "#e3f2fd",
+                    },
+                    {
+                      label: "📙 GCSE",
+                      grades: [9, 10],
+                      color: "#f4511e",
+                      bg: "#fff3e0",
+                    },
+                    {
+                      label: "🎓 A-Level",
+                      grades: [11, 12],
+                      color: "#8e24aa",
+                      bg: "#f3e5f5",
+                    },
+                  ].map((stage) => (
+                    <div
+                      key={stage.label}
+                      style={{
+                        ...styles.stageBox,
+                        background: stage.bg,
+                        borderColor: stage.color,
+                      }}
+                    >
+                      <p style={{ ...styles.stageLabel, color: stage.color }}>
+                        {stage.label}
+                      </p>
+                      <div style={styles.gradeRow}>
+                        {stage.grades.map((g) => (
+                          <div
+                            key={g}
+                            onClick={() => handleGradeToggle(g)}
+                            style={{
+                              ...styles.gradeBtn,
+                              background: assignedGrades.includes(String(g))
+                                ? stage.color
+                                : "white",
+                              color: assignedGrades.includes(String(g))
+                                ? "white"
+                                : stage.color,
+                              borderColor: stage.color,
+                            }}
+                          >
+                            {g}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {assignedGrades.length > 0 && (
+                  <p style={styles.selectedGrades}>
+                    ✅ Selected: Grade{" "}
+                    {assignedGrades
+                      .sort((a, b) => Number(a) - Number(b))
+                      .join(", ")}
+                  </p>
+                )}
+              </>
             )}
+
             <button
-              style={{
-                ...styles.button,
-                background: isTutor ? "#5c6bc0" : "#3f51b5",
-              }}
+              style={{ ...styles.button, background: "#5c6bc0" }}
               type="submit"
               disabled={loading}
             >
@@ -219,11 +313,12 @@ const styles = {
     width: "fit-content",
   },
   right: {
-    width: "480px",
+    width: "520px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     padding: "40px",
+    overflowY: "auto",
   },
   registerBox: {
     background: "white",
@@ -256,6 +351,12 @@ const styles = {
     color: "#444",
     marginBottom: "6px",
   },
+  gradeHint: {
+    fontSize: "12px",
+    color: "#aaa",
+    marginBottom: "12px",
+    marginTop: "-4px",
+  },
   input: {
     width: "100%",
     padding: "13px 16px",
@@ -274,7 +375,7 @@ const styles = {
     fontSize: "16px",
     cursor: "pointer",
     fontWeight: "600",
-    marginTop: "4px",
+    marginTop: "8px",
   },
   error: {
     background: "#ffebee",
@@ -289,5 +390,39 @@ const styles = {
     marginTop: "24px",
     color: "#888",
     fontSize: "14px",
+  },
+  gradesGrid: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    marginBottom: "16px",
+  },
+  stageBox: {
+    padding: "12px 16px",
+    borderRadius: "10px",
+    border: "1.5px solid",
+  },
+  stageLabel: { fontSize: "13px", fontWeight: "700", marginBottom: "10px" },
+  gradeRow: { display: "flex", gap: "8px", flexWrap: "wrap" },
+  gradeBtn: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    fontWeight: "700",
+    fontSize: "14px",
+    border: "2px solid",
+  },
+  selectedGrades: {
+    fontSize: "13px",
+    color: "#43a047",
+    fontWeight: "600",
+    marginBottom: "8px",
+    padding: "8px 12px",
+    background: "#e8f5e9",
+    borderRadius: "8px",
   },
 };

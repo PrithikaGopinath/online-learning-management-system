@@ -57,23 +57,26 @@ export default function Students() {
       setProfile(profileData);
 
       if (profileData && profileData.role === "tutor") {
-        const { data: s } = await supabase
+        const assignedGrades = profileData.assigned_grades || [];
+        let studentQuery = supabase
           .from("profiles")
           .select("*")
           .eq("role", "student")
           .order("grade");
+        if (assignedGrades.length > 0) {
+          studentQuery = studentQuery.in("grade", assignedGrades);
+        }
+        const { data: s } = await studentQuery;
         setStudents(s || []);
-
         const { data: sub } = await supabase.from("submissions").select("*");
         setSubmissions(sub || []);
-
         const { data: att } = await supabase.from("quiz_attempts").select("*");
         setAttempts(att || []);
-
-        const { data: mod } = await supabase
-          .from("modules")
-          .select("*")
-          .eq("created_by", user.id);
+        let modQuery = supabase.from("modules").select("*");
+        if (assignedGrades.length > 0) {
+          modQuery = modQuery.in("grade", assignedGrades);
+        }
+        const { data: mod } = await modQuery;
         setModules(mod || []);
       }
       setLoading(false);
@@ -83,10 +86,8 @@ export default function Students() {
 
   const getStudentSubmissions = (studentId) =>
     submissions.filter((s) => s.student_id === studentId).length;
-
   const getStudentAttempts = (studentId) =>
     attempts.filter((a) => a.student_id === studentId).length;
-
   const getAverageScore = (studentId) => {
     const studentAttempts = attempts.filter((a) => a.student_id === studentId);
     if (studentAttempts.length === 0) return null;
@@ -95,12 +96,8 @@ export default function Students() {
       studentAttempts.length;
     return Math.round(avg);
   };
-
-  const getScoreColor = (score) => {
-    if (score >= 80) return "#43a047";
-    if (score >= 50) return "#f4511e";
-    return "#e53935";
-  };
+  const getScoreColor = (score) =>
+    score >= 80 ? "#43a047" : score >= 50 ? "#f4511e" : "#e53935";
 
   const filteredStudents = students.filter((s) => {
     const stage = getStage(s.grade);
@@ -150,21 +147,6 @@ export default function Students() {
           <p style={styles.profileGrade}>
             Grade {profile.grade} • {getStage(profile.grade)}
           </p>
-          <div style={styles.profileStats}>
-            <div style={styles.profileStat}>
-              <span style={styles.profileStatNum}>
-                {submissions.filter((s) => s.student_id === profile.id).length}
-              </span>
-              <span style={styles.profileStatLabel}>Submitted</span>
-            </div>
-            <div style={styles.profileStatDivider} />
-            <div style={styles.profileStat}>
-              <span style={styles.profileStatNum}>
-                {attempts.filter((a) => a.student_id === profile.id).length}
-              </span>
-              <span style={styles.profileStatLabel}>Quizzes Done</span>
-            </div>
-          </div>
           <div style={styles.stageCard}>
             <span style={{ fontSize: "24px" }}>
               {STAGES[getStage(profile.grade)].icon}
@@ -202,7 +184,11 @@ export default function Students() {
         <div>
           <h1 style={styles.pageTitle}>Students</h1>
           <p style={styles.pageDesc}>
-            {students.length} students enrolled across all grades
+            {profile &&
+            profile.assigned_grades &&
+            profile.assigned_grades.length > 0
+              ? `Your assigned grades: ${profile.assigned_grades.sort((a, b) => Number(a) - Number(b)).join(", ")} • ${students.length} students`
+              : `${students.length} students enrolled`}
           </p>
         </div>
       </div>
@@ -212,6 +198,7 @@ export default function Students() {
           const count = students.filter(
             (s) => getStage(s.grade) === stage,
           ).length;
+          if (count === 0) return null;
           return (
             <div
               key={stage}
@@ -262,19 +249,25 @@ export default function Students() {
           >
             All Stages
           </span>
-          {Object.entries(STAGES).map(([stage, data]) => (
-            <span
-              key={stage}
-              onClick={() => setFilterStage(stage)}
-              style={{
-                ...styles.pill,
-                background: filterStage === stage ? data.color : data.bg,
-                color: filterStage === stage ? "white" : data.color,
-              }}
-            >
-              {data.icon} {stage}
-            </span>
-          ))}
+          {Object.entries(STAGES).map(([stage, data]) => {
+            const count = students.filter(
+              (s) => getStage(s.grade) === stage,
+            ).length;
+            if (count === 0) return null;
+            return (
+              <span
+                key={stage}
+                onClick={() => setFilterStage(stage)}
+                style={{
+                  ...styles.pill,
+                  background: filterStage === stage ? data.color : data.bg,
+                  color: filterStage === stage ? "white" : data.color,
+                }}
+              >
+                {data.icon} {stage}
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -407,11 +400,11 @@ export default function Students() {
                         <div style={styles.expandedSection}>
                           <div style={styles.expandedDivider} />
                           <h4 style={styles.expandedTitle}>
-                            📚 Available Modules for Grade {student.grade}
+                            📚 Modules for Grade {student.grade}
                           </h4>
                           {gradeModules.length === 0 ? (
                             <p style={styles.expandedEmpty}>
-                              No modules uploaded for Grade {student.grade} yet
+                              No modules for Grade {student.grade} yet
                             </p>
                           ) : (
                             <div style={styles.modulesList}>
@@ -565,7 +558,6 @@ const styles = {
     boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
     border: "1px solid #f0f0f0",
     cursor: "pointer",
-    transition: "all 0.2s",
   },
   studentCardTop: {
     display: "flex",
@@ -728,22 +720,6 @@ const styles = {
     fontWeight: "600",
     marginBottom: "24px",
   },
-  profileStats: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "32px",
-    marginBottom: "24px",
-  },
-  profileStat: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "4px",
-  },
-  profileStatNum: { fontSize: "28px", fontWeight: "800", color: "#1a1a2e" },
-  profileStatLabel: { fontSize: "12px", color: "#888" },
-  profileStatDivider: { width: "1px", height: "40px", background: "#e0e0e0" },
   stageCard: {
     display: "flex",
     alignItems: "center",
