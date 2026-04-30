@@ -35,7 +35,7 @@ export default function Sidebar() {
   const navLinks = [
     { to: "/dashboard", icon: "🏠", label: "Dashboard" },
     { to: "/progress", icon: "📊", label: "Progress" },
-
+    { to: "/grades", icon: "📋", label: "Grades" },
     { to: "/students", icon: "👨‍🎓", label: "Students" },
     { to: "/modules", icon: "📚", label: "Modules" },
     { to: "/assignments", icon: "📝", label: "Assignments" },
