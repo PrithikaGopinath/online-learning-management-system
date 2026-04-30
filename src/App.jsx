@@ -12,7 +12,7 @@ import VideoMeeting from './pages/VideoMeeting.jsx'
 import Chat from './pages/Chat.jsx'
 import Announcements from './pages/Announcements.jsx'
 import Quiz from './pages/Quiz.jsx'
-import Sidebar from './components/Sidebar.jsx'
+import Sidebar from './components/sidebar.jsx'
 import Students from './pages/Students.jsx'
 import Progress from './pages/Progress.jsx'
 
