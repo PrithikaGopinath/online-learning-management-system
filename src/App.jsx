@@ -73,4 +73,4 @@ function App() {
   )
 }
 
-export default AppÍ
+export default App
