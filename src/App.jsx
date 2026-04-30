@@ -19,7 +19,8 @@ import Announcements from "./pages/Announcements.jsx";
 import Quiz from "./pages/Quiz.jsx";
 import Sidebar from "./components/sidebar.jsx";
 import Students from "./pages/Students.jsx";
-
+import Progress from "./pages/Progress.jsx";
+import Grades from "./pages/Grades.jsx";
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,8 @@ function App() {
               <Route path="/announcements" element={<Announcements />} />
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/students" element={<Students />} />
+              <Route path="/progress" element={<Progress />} />
+              <Route path="/grades" element={<Grades />} />
               <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
@@ -90,7 +93,6 @@ function App() {
           <Route path="/login/:role" element={<Login />} />
           <Route path="/register/:role" element={<Register />} />
           <Route path="*" element={<Navigate to="/" />} />
-          <Route path="/students" element={<Students />} />
         </Routes>
       )}
     </Router>
