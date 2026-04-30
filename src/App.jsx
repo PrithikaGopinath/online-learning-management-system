@@ -1,76 +1,51 @@
-import React, { useState, useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { supabase } from "./config/supabase";
-import Home from "./pages/Home.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Modules from "./pages/Modules.jsx";
-import Assignments from "./pages/Assignments.jsx";
-import Timetable from "./pages/Timetable.jsx";
-import VideoMeeting from "./pages/VideoMeeting.jsx";
-import Chat from "./pages/Chat.jsx";
-import Announcements from "./pages/Announcements.jsx";
-import Quiz from "./pages/Quiz.jsx";
-import Sidebar from "./components/Sidebar.jsx";
-import Students from "./pages/Students.jsx";
-import Progress from "./pages/Progress.jsx";
+import React, { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { supabase } from './config/supabase'
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Modules from './pages/Modules.jsx'
+import Assignments from './pages/Assignments.jsx'
+import Timetable from './pages/Timetable.jsx'
+import VideoMeeting from './pages/VideoMeeting.jsx'
+import Chat from './pages/Chat.jsx'
+import Announcements from './pages/Announcements.jsx'
+import Quiz from './pages/Quiz.jsx'
+import Sidebar from './components/Sidebar.jsx'
+import Students from './pages/Students.jsx'
+import Progress from './pages/Progress.jsx'
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
-  if (loading)
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#f0f2f5",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🎓</div>
-          <p style={{ color: "#5c6bc0", fontSize: "18px", fontWeight: "600" }}>
-            Loading LearnHub VLE...
-          </p>
-        </div>
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎓</div>
+        <p style={{ color: '#5c6bc0', fontSize: '18px', fontWeight: '600' }}>Loading LearnHub VLE...</p>
       </div>
-    );
+    </div>
+  )
 
   return (
     <Router>
       {user ? (
-        <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ display: 'flex', minHeight: '100vh' }}>
           <Sidebar />
-          <div
-            style={{
-              flex: 1,
-              marginLeft: "260px",
-              minHeight: "100vh",
-              background: "#f0f2f5",
-            }}
-          >
+          <div style={{ flex: 1, marginLeft: '260px', minHeight: '100vh', background: '#f0f2f5' }}>
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/modules" element={<Modules />} />
@@ -93,10 +68,9 @@ function App() {
           <Route path="/register/:role" element={<Register />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-      )
-    }
+      )}
     </Router>
-  );
+  )
 }
 
-export default App;
+export default AppÍ
