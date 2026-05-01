@@ -3,22 +3,112 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f0f2f5;
   color: #1a1a2e;
 }
+
 a {
   text-decoration: none;
 }
+
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #c5c5d2;
   border-radius: 3px;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  /* Main content takes full width */
+  div[style*="marginLeft: 260px"],
+  div[style*="margin-left: 260px"] {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Hide sidebar on mobile */
+  div[style*="width: 260px"][style*="position: fixed"] {
+    display: none !important;
+  }
+
+  /* Stack flex rows vertically */
+  div[style*="display: flex"][style*="gap"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Full width stat cards */
+  div[style*="minWidth: 180px"] {
+    min-width: unset !important;
+    width: 100% !important;
+  }
+
+  /* Full width chart cards */
+  div[style*="minWidth: 300px"] {
+    min-width: unset !important;
+    width: 100% !important;
+  }
+
+  /* Padding on pages */
+  div[style*="padding: 32px"] {
+    padding: 16px !important;
+  }
+
+  /* Home page stack */
+  div[style*="width: 480px"] {
+    width: 100% !important;
+  }
+
+  /* Login and register pages */
+  div[style*="flex: 1"][style*="padding: 60px"] {
+    display: none !important;
+  }
+
+  /* Tables scroll horizontally */
+  div[style*="display: flex"][style*="borderBottom"] {
+    overflow-x: auto !important;
+  }
+
+  /* Buttons full width on mobile */
+  button[style*="width: 100%"] {
+    font-size: 14px !important;
+  }
+
+  /* Grid columns single on mobile */
+  div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Font size adjustments */
+  h1 {
+    font-size: 22px !important;
+  }
+  h2 {
+    font-size: 18px !important;
+  }
+  h3 {
+    font-size: 15px !important;
+  }
+}
+
+/* ── Tablet Responsive ── */
+@media (max-width: 1024px) {
+  div[style*="padding: 32px"] {
+    padding: 20px !important;
+  }
+
+  div[style*="minWidth: 400px"] {
+    min-width: unset !important;
+    width: 100% !important;
+  }
 }
