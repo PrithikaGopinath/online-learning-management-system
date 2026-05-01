@@ -17,10 +17,11 @@ import VideoMeeting from "./pages/VideoMeeting.jsx";
 import Chat from "./pages/Chat.jsx";
 import Announcements from "./pages/Announcements.jsx";
 import Quiz from "./pages/Quiz.jsx";
-import Sidebar from "./components/sidebar.jsx";
+import Sidebar from "./components/Sidebar.jsx";
 import Students from "./pages/Students.jsx";
 import Progress from "./pages/Progress.jsx";
 import Grades from "./pages/Grades.jsx";
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,10 @@ function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   if (loading)
     return (
@@ -71,6 +76,53 @@ function App() {
               background: "#f0f2f5",
             }}
           >
+            {/* Mobile Header — only shows on phone */}
+            <div
+              style={{
+                display: "none",
+                padding: "12px 16px",
+                background: "white",
+                borderBottom: "1px solid #e0e0e0",
+                justifyContent: "space-between",
+                alignItems: "center",
+                position: "sticky",
+                top: 0,
+                zIndex: 99,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+              }}
+              className="mobile-header"
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <span style={{ fontSize: "20px" }}>📖</span>
+                <span
+                  style={{
+                    fontWeight: "700",
+                    color: "#1a1a2e",
+                    fontSize: "16px",
+                  }}
+                >
+                  LearnHub VLE
+                </span>
+              </div>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  background: "#ffebee",
+                  color: "#e53935",
+                  border: "1px solid #ffcdd2",
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                🚪 Sign Out
+              </button>
+            </div>
+
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/modules" element={<Modules />} />

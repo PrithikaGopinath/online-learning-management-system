@@ -112,3 +112,18 @@ a {
     width: 100% !important;
   }
 }
+
+/* Mobile header */
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex !important;
+  }
+
+  /* Fix chat on mobile */
+  div[style*="width: 280px"] {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+  }
+}
